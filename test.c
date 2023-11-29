@@ -4,46 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-//int capacity;	//	³ÃÀå°í ¿ë·®
-//int day;		//	Áö³­ ÀÏ ¼ö 
-//
-//typedef struct Food
-//{
-//	int carbs, protein, fat;	//	Åº ´Ü Áö
-//	int gram, kcal;				//	±×·¥, Ä®·Î¸®
-//	int days_until_exp;			//	¼Òºñ±âÇÑ±îÁö ³²Àº ÀÏ ¼ö 
-//} food;
-//
-//double priority(food foods, double *priority) {
-//	double w1 = (double)foods.kcal / foods.gram;
-//	double w2 = priority[0] * foods.carbs + priority[1] * foods.protein + priority[2] * foods.fat;
-//}
-//
-////	À¯Åë±âÇÑ ¿ì¼± Á¤·Ä -> Ä®·Î¸®/¹«°Ô -> Åº´ÜÁö ¿ì¼±¼øÀ§
-//void selectionSort(food* foods, int n) {
-//    int i, j, min, temp;
-//    
-//    for (i = 0; i < n - 1; i++) {
-//        min = i;
-//        for (j = i + 1; j < n; j++) {
-//            if (foods[j].days_until_exp < foods[min].days_until_exp)
-//                min = j;
-//        }
-//
-//        if (i != min) {
-//            SWAP(foods[i].days_until_exp, foods[min].days_until_exp, temp);
-//        }
-//    }
-//}
-//
-//
-//int main() {
-//	food foods[5];
-//	while (1) {
-//		scanf();
-//	}
-//}
-
 #define MAX_WEIGHT_LIMIT 1000
 #define DAY_COUNT 10
 
@@ -59,7 +19,7 @@ typedef struct Food {
 } food;
 
 double priority(food foods, int *prio) {
-    //  Åº´ÜÁö °¡ÁßÄ¡ - 10 * Ä®·Î¸®/¹«°Ô
+    //  íƒ„ë‹¨ì§€ ê°€ì¤‘ì¹˜ - 10 * ì¹¼ë¡œë¦¬/ë¬´ê²Œ
 	double w1 = (double)foods.cals / foods.weight;
 
     double priority[3];
@@ -84,7 +44,8 @@ double priority(food foods, int *prio) {
 food* consumeList(food* foods, int n, int* prio) {
 
     food consume_list[100];
-    //  1. ¼Òºñ±âÇÑ ±âºÐÀ¸·Î ¸ÕÀú Á¤·Ä
+
+    //  1. ì†Œë¹„ê¸°í•œ ê¸°ë³¸ìœ¼ë¡œ ë¨¼ì € ì •ë ¬
     int i, j, min;
     food temp;
     int total_weight = 0;
@@ -103,20 +64,31 @@ food* consumeList(food* foods, int n, int* prio) {
         }
     }
 
-    //  ¼Òºñ±âÇÑÀÌ 1³²Àº À½½ÄµéÀÌ ÀÖÀ»°æ¿ì ¼Òºñ¸®½ºÆ®¿¡ Ãß°¡
+    //  1-1. ë‚¨ì€ ê¸°ê°„ì´ 2ì¼ ì´í•˜ê°€ 100 ì´ˆê³¼ í•˜ëŠ”ì§€ ì²´í¬
+    int total = 0;
+    for(int i = 0; i < n; i++){
+        if (foods[i].remaining_days > 3) {
+            break;
+        }
+        total += foods[i].weight;
+    }
+
+    //  ì´ˆê³¼í•œë‹¤ë©´ ìš©ëŸ‰ì´ í° ê²ƒë¶€í„° ë“œëž
+    if (total > 100) {
+        int max_index = 0;
+        for (int j = 0; j < i; j++) {
+            if (foods[j].weight > foods[max_index].weight) {
+                max_index = j;
+            }
+        }
+        for (int j = max_index; j < n - 1; j++) {
+            foods[j] = foods[j + 1];
+        }
+        break;
+    }
+
+    //  ì†Œë¹„ê¸°í•œì´ 1ë‚¨ì€ ìŒì‹ë“¤ì´ ìžˆì„ê²½ìš° ì†Œë¹„ë¦¬ìŠ¤íŠ¸ì— ì¶”ê°€
     if (foods[0].remaining_days == 1) {
-        //int k = 0;
-        //for (i = 0; i < n; i++) {
-        //    total_weight += foods[i].weight;
-        //    if (foods[i].remaining_days == 1 && total_weight < 100) {
-        //        consume_list[k] = foods[i];
-        //        k++;
-        //    }
-        //    else
-        //        break;
-        //}
-        //if(total_weight >= 100)
-        //    return consume_list;
         int k = 0;
         for (i = 0; i < n; i++) {
             for (j = 0; j < foods[i].weight; j++) {
@@ -138,12 +110,12 @@ food* consumeList(food* foods, int n, int* prio) {
         }
     }
 
-    //  Åº´ÜÁö  - Ä®/¿ë * 10
-    // ¿ì¼±¼øÀ§ 
+    //  íƒ„ë‹¨ì§€  - ì¹¼/ìš© * 10
+    // ìš°ì„ ìˆœìœ„ 
     for (i = 0; i < n; i++) {
         foods[i].priority = priority(foods[i], prio);
     }
-    //  ¿ì¼±¼øÀ§´ë·Î Á¤·Ä
+    //  ìš°ì„ ìˆœìœ„ëŒ€ë¡œ ì •ë ¬
     int max;
     for (i = 0; i < n - 1; i++) {
         max = i;
