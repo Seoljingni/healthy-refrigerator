@@ -1,10 +1,10 @@
 # 💪 Healthy Refrigerator
 ## Algorithm Term Project Team 9
 ### ✅ Contents
-1. [Overview](#Overview)   
-2. [Problem Story](#Problem-Story)   
-3. [Problem Statement](#Problem-Statement)   
-4. [I/O Format](#I/O-Format)
+1. [Overview](#👀-Overview)   
+2. [Problem Story](#📝-Problem-Story)   
+3. [Problem Statement](#✔️-Problem-Statement)   
+4. [I/O Format](#🔠-I/O-Format)
 <div align="center">
 
 ## 👀 Overview
