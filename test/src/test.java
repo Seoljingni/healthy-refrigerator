@@ -1,5 +1,6 @@
 import java.util.*;
 import java.util.stream.Collectors;
+import java.io.*;
 
 public class test {
     public static ArrayList<food> foods = new ArrayList<food>();
@@ -11,9 +12,6 @@ public class test {
     public static int days = 1;
 
     public static double priority(food food, int prio[]) {	
-        //
-        System.out.println("PRIO before: " + food);
-        //
         double w1 =(double)food.cals / food.weight;
         int[] arr = new int[3];
         double[] priority = new double[3];
@@ -34,7 +32,6 @@ public class test {
                     break;
                 }
         }
-        //System.out.println(Arrays.toString(arr));
         for (int i = 0; i < 3; i++) {
             switch (arr[i]) {
                 case 1:
@@ -59,8 +56,33 @@ public class test {
         }
     }
 
-    public static void initialInputCheck() {
-        //  기간 2이하로 남은 음식 용량이 100을 넘는가
+    // public static void initialInputCheck() {
+    //     //  기간 2이하로 남은 음식 용량이 100을 넘는가
+    //     List<food> list = foods.stream().filter(f -> f.remaining_days < 3).collect(Collectors.toList());
+    //     ArrayList<food> near_exp = new ArrayList<food>(list);
+
+    //     int near_exp_weight = 0;
+    //     for(food food : near_exp) {
+    //         near_exp_weight += food.weight;
+    //     }
+
+    //     //  넘는다면 용량이 큰 순서부터 드랍하여 100 이하로 맞춤
+    //     while (near_exp_weight > out_weight) {
+    //         food maxFood = Collections.max(near_exp, (f1, f2) -> f1.weight - f2.weight);
+    //         System.out.println("drop food: " + maxFood.name + "\n");
+    //         foods.remove(maxFood);
+    //         near_exp.remove(maxFood);
+    //         near_exp_weight -= maxFood.weight;
+    //     }
+    // }
+
+    public static ArrayList<food> solution() {
+        ArrayList<food> consume_list = new ArrayList<food>();
+
+        //  소비기한으로 정렬
+        Collections.sort(foods,new RemainComparator());
+
+        // //  기간 2이하로 남은 음식 용량이 100을 넘는가
         List<food> list = foods.stream().filter(f -> f.remaining_days < 3).collect(Collectors.toList());
         ArrayList<food> near_exp = new ArrayList<food>(list);
 
@@ -69,8 +91,7 @@ public class test {
             near_exp_weight += food.weight;
         }
 
-        //  넘는다면 용량이 큰 순서부터 드랍하여 100 이하로 맞춤
-        //  Collections.max(near_exp);
+        // 넘는다면 용량이 큰 순서부터 드랍하여 100 이하로 맞춤
         while (near_exp_weight > out_weight) {
             food maxFood = Collections.max(near_exp, (f1, f2) -> f1.weight - f2.weight);
             System.out.println("drop food: " + maxFood.name + "\n");
@@ -78,64 +99,40 @@ public class test {
             near_exp.remove(maxFood);
             near_exp_weight -= maxFood.weight;
         }
-    }
-
-    public static ArrayList<food> solution() {
-        ArrayList<food> consume_list = new ArrayList<food>();
-
-        //  소비기한으로 정렬
-        Collections.sort(foods,new RemainComparator());
-
-        //---------------
-        for (food food : foods) {
-            System.out.printf("%s %d,", food.name, food.remaining_days);
-        }
-        System.out.println("\n");
-        //------------
-
-        // //  기간 2이하로 남은 음식 용량이 100을 넘는가
-        // List<food> list = foods.stream().filter(f -> f.remaining_days < 3).collect(Collectors.toList());
-        // ArrayList<food> near_exp = new ArrayList<food>(list);
-
-        // int near_exp_weight = 0;
-        // for(food food : near_exp) {
-        //     near_exp_weight += food.weight;
-        // }
-
-        // //  넘는다면 용량이 큰 순서부터 드랍하여 100 이하로 맞춤
-        // //  Collections.max(near_exp);
-        // while (near_exp_weight > out_weight) {
-        //     food maxFood = Collections.max(near_exp, (f1, f2) -> f1.weight - f2.weight);
-        //     System.out.println("drop food: " + maxFood.name + "\n");
-        //     foods.remove(maxFood);
-        //     near_exp.remove(maxFood);
-        //     near_exp_weight -= maxFood.weight;
-        // }
 
         //  기간 1남은 음식을 리스트에 추가
-        List<food> list = foods.stream().filter(f -> f.remaining_days < 2).collect(Collectors.toList());
+        list = null;
+        list = foods.stream().filter(f -> f.remaining_days < 2).collect(Collectors.toList());
         ArrayList<food> remain_one_day = new ArrayList<food>(list);
 
         int total_weight = 0;
         for(food food : remain_one_day) {
             total_weight += food.weight;
         }
-        if(total_weight > 100) {
-            while (total_weight > 100) {
-                food minFood = remain_one_day.get(0);
-                for(int i =1; i < remain_one_day.size(); i++) {
-                    food food1 = foods.get(i);
-                    if(minFood.priority > food1.priority){
-                        minFood = food1;
-                    }
-                }
-                total_weight -= minFood.weight;
-                remain_one_day.remove(minFood);
-                foods.remove(minFood);
-            }
-        }
         consume_list.addAll(remain_one_day);
         foods.removeAll(remain_one_day);
+
+        // int total_weight = 0;
+        // for(food food : remain_one_day) {
+        //     total_weight += food.weight;
+        // }
+        // if(total_weight > 100) {
+        //     while (total_weight > 100) {
+        //         food minFood = remain_one_day.get(0);
+        //         for(int i =1; i < remain_one_day.size(); i++) {
+        //             food food1 = foods.get(i);
+        //             if(minFood.priority > food1.priority){
+        //                 minFood = food1;
+        //             }
+        //         }
+        //         total_weight -= minFood.weight;
+        //         remain_one_day.remove(minFood);
+        //         foods.remove(minFood);
+        //     }
+        // }
+        // consume_list.addAll(remain_one_day);
+        // foods.removeAll(remain_one_day);
+        
         
         //  이외의 것 중 우선순위 높은순서부터 리스트에 추가
         Collections.sort(foods, new PriorityComparator());
@@ -146,24 +143,15 @@ public class test {
 
             food food = foods.get(0);
 
-            // -----
-            System.out.println(food.name + " \n");
-            // -----
-
             if(total_weight == out_weight) {
-                
-            System.out.println(" total : " + total_weight + "\n");
                 break;
             }
-                
 
             //  용량이 100 안
             else if((total_weight + food.weight) <= out_weight) {
                 total_weight += food.weight;
                 consume_list.add(food);
                 foods.remove(food);
-            System.out.println(" FW : " + food.weight + "\n");         
-            System.out.println(" total : " + total_weight + "\n");
             }
 
             //  용량이 100 초과
@@ -182,10 +170,6 @@ public class test {
 
                 total_weight += rest;
                 consume_list.add(food1);
-                
-            System.out.println(" FW : " + food.weight + "\n");  
-            System.out.println(" FW : " + food1.weight + "\n");  
-            System.out.println(" total : " + total_weight + " rest : " + rest + "\n");
                 break;
             }
         }
@@ -193,21 +177,43 @@ public class test {
         return consume_list;
     }
 
-    public static void main(String[] args) {
-        foods.add(new food("chicken breast", 30, 10, 160, 0, 75, 25));
-        foods.add(new food("burrito", 50, 3, 350, 60, 30, 10));
-        foods.add(new food("yogurt", 80, 4, 100, 20, 50, 30));
-        foods.add(new food("meetball spagetti", 100, 5, 480, 65, 25, 10));
-        foods.add(new food("bread", 40, 2, 300, 80, 10, 10));
-        foods.add(new food("egg", 18, 7, 25, 10, 65, 25));
-        foods.add(new food("Kimchi Fried Rice", 150, 2, 650, 88, 7, 5));
-        foods.add(new food("pork cutlet", 50, 15, 425, 15, 65, 20));
-        foods.add(new food("pizza", 110, 5, 510, 60, 5, 35));
-        foods.add(new food("tteokbokki", 150, 11, 550, 75, 2, 23));
+    public static void main(String[] args) throws IOException {
+        File file = new File("C:\\git\\healthy-refrigerator\\input.txt");
+        Scanner fScanner = new Scanner(file);
+        FileReader reader = new FileReader(file);
+        BufferedReader bufferedReader = new BufferedReader(reader);
+
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            String[] inputs = line.split(", ");
+
+            String name = inputs[0];
+            int weight = Integer.parseInt(inputs[1]);
+            int remaining_days = Integer.parseInt(inputs[2]);
+            double cals = Double.parseDouble(inputs[3]);
+            int carb = Integer.parseInt(inputs[4]);
+            int protein = Integer.parseInt(inputs[5]);
+            int fat = Integer.parseInt(inputs[6]);
+
+            foods.add(new food(name, weight, remaining_days, cals, carb, protein, fat));
+            
+        }
+
+        bufferedReader.close();
+        fScanner.close();
+        // foods.add(new food("chicken breast", 30, 10, 160, 0, 75, 25));
+        // foods.add(new food("burrito", 50, 3, 350, 60, 30, 10));
+        // foods.add(new food("yogurt", 80, 4, 100, 20, 50, 30));
+        // foods.add(new food("meetball spagetti", 100, 5, 480, 65, 25, 10));
+        // foods.add(new food("bread", 40, 2, 300, 80, 10, 10));
+        // foods.add(new food("egg", 18, 7, 25, 10, 65, 25));
+        // foods.add(new food("Kimchi Fried Rice", 150, 2, 650, 88, 7, 5));
+        // foods.add(new food("pork cutlet", 50, 15, 425, 15, 65, 20));
+        // foods.add(new food("pizza", 110, 5, 510, 60, 5, 35));
+        // foods.add(new food("tteokbokki", 150, 11, 550, 75, 2, 23));
 
         int[] prio = new int[3];
         Scanner scanner = new Scanner(System.in);
-        initialInputCheck();
         while(foods.size() != 0) {
             System.out.println("\nPlace in the order of importance: 1 carbohydrates, 2 proteins, and 3 fats.\r\n" + 
                     "(ex: 2 1 3)-> This means that it is weighted in the order of protein, carbohydrates, and fat.\r\n" + 
@@ -222,9 +228,6 @@ public class test {
             for (int i = 0 ; i < foods.size() ; i++) {
                 food food = foods.get(i);
                 food.priority = priority(food, prio);
-                        //
-        System.out.println("PRIO after: " + food);
-        //
             }
 
             ArrayList<food> consume_lists = solution();
@@ -233,23 +236,23 @@ public class test {
             System.out.printf("Day: %d\n", days);
             for (int i = 0; i < consume_lists.size(); i++) {
                 food food = consume_lists.get(i);
+
                 total_cals += food.cals;
-               // System.out.printf("%s", food.name);
-            //-------
-                System.out.println(food);
-            //-------    
+                System.out.printf("%s", food.name);
+
                 if(i < consume_lists.size() - 1)
                     System.out.printf(", ");
                 else 
                     System.out.printf("\n");
             }
             System.out.printf("total calories : %f\n", total_cals);
+            System.out.println("Left Over: ");
+            if(foods.size() == 0) {
+                System.out.println("none\n\n");
+            }
             for (int i = 0; i < foods.size(); i++) {
                 food food = foods.get(i);
-                //System.out.printf("%s", food.name);
-            //-------
-                System.out.println(food);
-            //-------    
+                System.out.printf("%s", food.name);
                 if(i < foods.size() - 1)
                     System.out.printf(", ");
                 else 
