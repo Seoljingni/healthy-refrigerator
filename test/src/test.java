@@ -177,13 +177,14 @@ public class test {
         return consume_list;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static int main(String[] args) throws IOException {
         File file = new File("C:\\git\\healthy-refrigerator\\input.txt");
         Scanner fScanner = new Scanner(file);
         FileReader reader = new FileReader(file);
         BufferedReader bufferedReader = new BufferedReader(reader);
 
         String line;
+        int total = 0;
         while ((line = bufferedReader.readLine()) != null) {
             String[] inputs = line.split(", ");
 
@@ -195,22 +196,17 @@ public class test {
             int protein = Integer.parseInt(inputs[5]);
             int fat = Integer.parseInt(inputs[6]);
 
+            total += weight;
+            if(total > 1000) {
+                System.out.println("error : too many food");
+                return 0;
+            }
             foods.add(new food(name, weight, remaining_days, cals, carb, protein, fat));
             
         }
 
         bufferedReader.close();
         fScanner.close();
-        // foods.add(new food("chicken breast", 30, 10, 160, 0, 75, 25));
-        // foods.add(new food("burrito", 50, 3, 350, 60, 30, 10));
-        // foods.add(new food("yogurt", 80, 4, 100, 20, 50, 30));
-        // foods.add(new food("meetball spagetti", 100, 5, 480, 65, 25, 10));
-        // foods.add(new food("bread", 40, 2, 300, 80, 10, 10));
-        // foods.add(new food("egg", 18, 7, 25, 10, 65, 25));
-        // foods.add(new food("Kimchi Fried Rice", 150, 2, 650, 88, 7, 5));
-        // foods.add(new food("pork cutlet", 50, 15, 425, 15, 65, 20));
-        // foods.add(new food("pizza", 110, 5, 510, 60, 5, 35));
-        // foods.add(new food("tteokbokki", 150, 11, 550, 75, 2, 23));
 
         int[] prio = new int[3];
         Scanner scanner = new Scanner(System.in);
@@ -231,8 +227,9 @@ public class test {
             }
 
             ArrayList<food> consume_lists = solution();
+
+            //  출력
             double total_cals = 0;
-            
             System.out.printf("Day: %d\n", days);
             for (int i = 0; i < consume_lists.size(); i++) {
                 food food = consume_lists.get(i);
@@ -245,8 +242,10 @@ public class test {
                 else 
                     System.out.printf("\n");
             }
+
             System.out.printf("total calories : %f\n", total_cals);
             System.out.println("Left Over: ");
+
             if(foods.size() == 0) {
                 System.out.println("none\n\n");
             }
@@ -258,10 +257,13 @@ public class test {
                 else 
                     System.out.printf("\n");
             }
+
+            //  다음날
             remainReduce();
             days++;
         }
         System.out.println("end");
+        return 1;
     }
 }
 
