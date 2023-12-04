@@ -5,8 +5,8 @@
 #include <math.h>
 
 
-#define MAX_FOOD_ITEMS 100
-#define MAX_NAME_LENGTH 50
+#define MAX_FOOD_ITEMS 100     //입력할 수 있는 최대 음식의 개수
+#define MAX_NAME_LENGTH 50     //음식 이름이 최대 길이
 
 
 int total_fooditem = 0;              //현재 냉장고에 남아있는 음식의 개수
@@ -15,21 +15,21 @@ int first_total_fooditem = 0;        //처음 냉장고에 있는 음식의 개수
 
 
 typedef struct {                              //냉장고에 담을 음식의 구조체
-    char name[MAX_NAME_LENGTH];
-    int weight;
-    int expiration;
-    float calories;
-    int carbo;
-    int protein;
-    int fat;
-    double value;
+    char name[MAX_NAME_LENGTH];   //이름
+    int weight;      //용량
+    int expiration;     //유통기한
+    float calories;     //칼로리
+    int carbo;       //탄수화물
+    int protein;      //단백질
+    int fat;         //지방
+    double value;        //가중치
 } FoodItem;
 
 
 typedef struct {                            //하루에 섭취할 음식의 구조체
-    FoodItem* choose_food;
-    int intake_weight;
-    float intake_calories;
+    FoodItem* choose_food;       //섭취 음식
+    int intake_weight;        //섭취 용량
+    float intake_calories;       //섭취 칼로리
 } SelectItem;
 
 
@@ -51,7 +51,7 @@ void load_food_items(FILE* file, FoodItem food_items[], int* num_items) {       
         &food_items[*num_items].protein, &food_items[*num_items].fat) == 7) {
         (*num_items)++;
         total_fooditem++;
-        first_total_fooditem++;
+        first_total_fooditem++;        //음식을 입력받을 때마다 현재 음식의 개수와 처음 음식의 개수를 모두 증가시킴
     }
 }
 
@@ -59,7 +59,7 @@ void load_food_items(FILE* file, FoodItem food_items[], int* num_items) {       
 
 void set_value(FoodItem* food_items, int carbo_prior, int protein_prior, int fat_prior) {           //음식 구조체의 value(가중치)를 할당하는 함수
 
-    for (int i = 0; i < total_fooditem; i++) {
+    for (int i = 0; i < total_fooditem; i++) {                 //가중치 계산식에 따라 가중치를 계산한 후 이를 food_items의 value에 할당
 
         if (carbo_prior == 1 && protein_prior == 2 && fat_prior == 3)
             food_items[i].value = (food_items[i].carbo * 1.0) + (food_items[i].protein * 0.7) + (food_items[i].fat * 0.4) - ((roundf(food_items[i].calories / (float)food_items[i].weight * 100)) / 100) * 10;
@@ -88,15 +88,15 @@ void sort_item(FoodItem* food_items, FoodItem* sort_list[]) {                   
 
     int m = 0;
 
-    for (int i = 0; i < first_total_fooditem; i++)
+    for (int i = 0; i < first_total_fooditem; i++)                 //음식의 이름이 NULL이 아니라면 food_item의 음식을 sort_list에 할당함
         if (strcmp(food_items[i].name, "NULL") != 0) {
             sort_list[m] = &food_items[i];
             m++;
         }
 
-    total_fooditem = m;
+    total_fooditem = m;             //sort_list에 할당된 개수만큼 현재 남아있는 음식의 개수가 정해짐
 
-    for (int j = 0; j < m; j++) {
+    for (int j = 0; j < m; j++) {                //가중치가 큰 순서대로 정렬 (selection sort 방식 사용)
         int temp = j;
         for (int k = j + 1; k < m; k++) {
             if (sort_list[temp]->value <= sort_list[k]->value)
@@ -111,19 +111,19 @@ void sort_item(FoodItem* food_items, FoodItem* sort_list[]) {                   
 
 void select(FoodItem* sort_list[], SelectItem select_item[]) {                 //greedy 알고리즘에 따라 섭취할 음식을 선택하는 함수
 
-    int remain_weight = 100;
+    int remain_weight = 100;       //하루에 섭취 가능한 용량은 100으로 고정
     int t = 0;
 
     for (int i = 0; i < total_fooditem; i++) {              //첫 반복문에서는 유통기한이 1일 남은 음식을 먼저 탐색
 
         if (sort_list[i]->expiration <= 1) {
-            select_item[t].choose_food = sort_list[i];
-            if (sort_list[i]->weight <= remain_weight) {
+            select_item[t].choose_food = sort_list[i];     //sort_list의 배열을 처음부터 탐색하면서 select_item에 넣음
+            if (sort_list[i]->weight <= remain_weight) {         //sort_list의 음식 용량이 현재 남은 용량보다 작을 경우
                 select_item[t].intake_weight = sort_list[i]->weight;
                 select_item[t].intake_calories = sort_list[i]->calories;
                 sort_list[i]->weight = 0;
             }
-            else {
+            else {                //sort_list의 음식 용량이 현재 남은 용량보다 클 경우
                 select_item[t].intake_weight = remain_weight;
                 select_item[t].intake_calories = ((roundf(sort_list[i]->calories / (float)sort_list[i]->weight * 100)) / 100) * remain_weight;
                 sort_list[i]->weight = sort_list[i]->weight - select_item[t].intake_weight;
@@ -131,49 +131,49 @@ void select(FoodItem* sort_list[], SelectItem select_item[]) {                 /
             }
             remain_weight = remain_weight - select_item[t].intake_weight;
             t++;
-            if (remain_weight == 0) break;
+            if (remain_weight == 0) break;       //남은 용량이 0이 되면 선택을 끝내기 위해 반복문 탈출
         }
     }
 
-    for (int i = 0; i < total_fooditem; i++) {                //두 번째 반복문에서는 가중치에 따른 우선순위로 음식을 선택
+    for (int i = 0; i < total_fooditem; i++) {                //두 번째 반복문에서는 가중치에 따른 우선순위로 음식을 선택 (유통기한이 2일 이상 남은 음식)
 
         if (sort_list[i]->expiration > 1) {
-            if (sort_list[i]->expiration <= 2 && sort_list[i]->weight > 100)
+            if (sort_list[i]->expiration <= 2 && sort_list[i]->weight > 100)     //유통기한이 2일 이하로 남았고 용량이 100일 이상 남은 음식은 진행하지 않고 건너뜀
                 continue;
             else {
-                select_item[t].choose_food = sort_list[i];
-                if (sort_list[i]->weight <= remain_weight) {
+                select_item[t].choose_food = sort_list[i];    //sort_list의 배열을 처음부터 탐색하면서 select_item에 넣음
+                if (sort_list[i]->weight <= remain_weight) {        //sort_list의 음식 용량이 현재 남은 용량보다 작을 경우
                     select_item[t].intake_weight = sort_list[i]->weight;
                     select_item[t].intake_calories = sort_list[i]->calories;
                     sort_list[i]->weight = 0;
                 }
-                else {
+                else {              //sort_list의 음식 용량이 현재 남은 용량보다 클 경우
                     select_item[t].intake_weight = remain_weight;
                     select_item[t].intake_calories = ((roundf(sort_list[i]->calories / (float)sort_list[i]->weight * 100)) / 100) * remain_weight;
                     sort_list[i]->weight = sort_list[i]->weight - select_item[t].intake_weight;
                     sort_list[i]->calories = sort_list[i]->calories - select_item[t].intake_calories;
                 }
-                remain_weight = remain_weight - select_item[t].intake_weight;
+                remain_weight = remain_weight - select_item[t].intake_weight;       //남은 용량을 선택한 음식의 섭취 용량만큼 감소
                 t++;
-                if (remain_weight == 0) break;
+                if (remain_weight == 0) break;       //남은 용량이 0이 되면 선택을 끝내기 위해 반복문 탈출
             }
         }
     }
 
-    total_selectitem = t;
+    total_selectitem = t;      //음식이 선택될 때마다 증가하는 t의 값을 total_selectitem에 할당
 
 }
 
 
 
 void print_selectitem(SelectItem select_item[]) {                            //선택한 음식을 출력하는 함수
-
+    printf("\033[0;33mSelect:\033[0m \n");
     for (int i = 0; i < total_selectitem; i++) {
-        if (i == total_selectitem - 1) {         //마지막 item 출력할 때 , 제외
-            printf("%s %d ", select_item[i].choose_food->name, select_item[i].intake_weight);
+        if (i == total_selectitem - 1) {                    //마지막 item 출력할 때 , 제외
+            printf("%s %d(weight)\n", select_item[i].choose_food->name, select_item[i].intake_weight);
         }
         else {
-            printf("%s %d, ", select_item[i].choose_food->name, select_item[i].intake_weight);
+            printf("%s %d(weight) \n", select_item[i].choose_food->name, select_item[i].intake_weight);
         }
     }
 }
@@ -181,13 +181,12 @@ void print_selectitem(SelectItem select_item[]) {                            //�
 
 
 void print_calories(SelectItem select_item[]) {                              //선택한 음식의 칼로리 총량을 출력하는 함수
-
     float total_calories = 0;
 
     for (int i = 0; i < total_selectitem; i++) {
-        total_calories = total_calories + select_item[i].intake_calories;
+        total_calories = total_calories + select_item[i].intake_calories;    //선택된 음식의 섭취 칼로리를 전부 더해서 칼로리 총량을 계산
     }
-    printf("Total calories: %.2f", total_calories);
+    printf("\033[0;33mTotal calories:\033[0m\n%.2f\n", total_calories);
 }
 
 
@@ -195,22 +194,23 @@ void print_calories(SelectItem select_item[]) {                              //�
 void update_item(FoodItem food_items[]) {                                    //선택이 끝나고 음식을 업데이트하는 함수 (유통기한 감소, 음식 제거)
 
     for (int i = 0; i < first_total_fooditem; i++) {
-        food_items[i].expiration--;
+        food_items[i].expiration--;                   //모든 음식의 유통기한을 1 감소
         if (food_items[i].expiration == 0 || food_items[i].weight == 0 || (food_items[i].expiration <= 2 && food_items[i].weight > 100))
-            strcpy(food_items[i].name, "NULL");
+            strcpy(food_items[i].name, "NULL");                         //유통기한이 1일 되거나, 용량이 0이 되거나, 유통기한이 2일이하이고 용량이 100 초과하면 item의 이름을 NULL로 함
     }
 }
 
 
 
 int print_leftitem(FoodItem food_items[]) {                                 //남아있는 음식의 이름을 출력하는 함수
-    int flag = 0;       //남은 음식 유무 확인
+    int flag = 0;        //남은 음식 유무 확인
+    int count = 0;
 
-    printf("Leftovers: ");
+    printf("\033[0;33mLeftovers:\033[0m \n");
 
     for (int i = 0; i < first_total_fooditem; i++) {
-        if (strcmp(food_items[i].name, "NULL") != 0) {
-            printf("%s, ", food_items[i].name);
+        if (strcmp(food_items[i].name, "NULL") != 0) {         //이름이 NULL이라면 출력하지 않음 (이미 제거된 음식)
+            printf("%s\n", food_items[i].name);
             flag++;
         }
     }
@@ -228,8 +228,8 @@ int main() {
 
     FILE* input_file = fopen("input.txt", "r");
 
-    if (input_file == NULL) {
-        fprintf(stderr, "Error opening input file.\n");
+    if (input_file == NULL) {                  //입력 파일이 존재하지 않을 경우 에러 표시
+        fprintf(stderr, "\033[0;31mError opening input file.\033[0m\n");
         return 1;
     }
 
@@ -250,14 +250,15 @@ int main() {
 
     while (1) {
 
-        printf("day:%d", day);
+        printf("\033[1mDay:%d\033[0m", day);
         printf("\n");
 
 
         scanf("%d %d %d", &value1, &value2, &value3);
+        printf("\n");
 
 
-        if (value1 == 1 && value2 == 2 && value3 == 3)
+        if (value1 == 1 && value2 == 2 && value3 == 3)           //입력값에 따라 서로 다르게 가중치를 할당함
             set_value(food_items, 1, 2, 3);
         else if (value1 == 1 && value2 == 3 && value3 == 2)
             set_value(food_items, 1, 3, 2);
@@ -270,7 +271,7 @@ int main() {
         else if (value1 == 3 && value2 == 2 && value3 == 1)
             set_value(food_items, 3, 2, 1);
         else {
-            printf("wrong value!");
+            printf("\033[0;31mwrong value!\033[0m");
             exit(1);
         }
 
@@ -286,13 +287,16 @@ int main() {
         printf("\n\n");
         day++;
 
+        printf("==========================================================\n\n");
+
         if (flag == 1) {        //flag가 1이면 반복문 종료
             break;
         }
 
     }
 
-    printf("The refrigerator is empty!\n\n");
+    printf("\033[0;36mThe refrigerator is empty!\033[0m\n");
+
     fclose(input_file);
 
     return 0;
